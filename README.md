@@ -1,52 +1,54 @@
 # screenshot MCP
 
-Локальный MCP для Windows: скрин экрана или окна, координаты окна, перевод фокуса.
+Local Windows MCP: capture the screen or a window, query window bounds, and move focus.
 
-Один файл, стандартная библиотека Python, без Puppeteer/npm. Картинка приходит в ответе инструмента (PNG), на диск ничего не пишется.
+One file, Python standard library only, no Puppeteer/npm. The PNG is returned in the tool result — nothing is written to disk.
 
-## Инструменты
+Russian: [README_RU.md](README_RU.md)
 
-| Tool | Назначение |
-|------|------------|
-| `screenshot_screen` | Основной монитор; `monitor` (1, 2, …) или `all_monitors` для всех сразу; либо регион `x/y/width/height` |
-| `screenshot_window` | Окно по `hwnd`, подстроке `title` или имени процесса |
-| `find_window` | Список видимых окон с прямоугольниками; без фильтра — все |
-| `focus_window` | Вынести окно на передний план (и развернуть, если свёрнуто) |
+## Tools
 
-`hwnd` лучше всего брать из `find_window`. Если по title/process находится несколько окон — инструмент вернёт ошибку и попросит `hwnd`.
+| Tool | Purpose |
+|------|---------|
+| `screenshot_screen` | Primary monitor; `monitor` (1, 2, …) or `all_monitors` for every display; or a region `x/y/width/height` |
+| `screenshot_window` | Window by `hwnd`, `title` substring, or process name |
+| `find_window` | Visible windows with rectangles; no filter lists all of them |
+| `focus_window` | Bring a window to the foreground (and restore it if minimized) |
 
-По умолчанию PNG ужимается по ширине до 1920 (`max_width`). `0` — нативное разрешение.
+Prefer `hwnd` from `find_window`. If `title`/`process` matches more than one window, the tool errors and asks for `hwnd`.
 
-## Запуск без Cursor
+PNGs are scaled to 1920px wide by default (`max_width`). `0` keeps native resolution.
 
-Нужен Python 3.10+ (проверялось на 3.12). Зависимостей нет.
+## Run without Cursor
+
+Python 3.10+ (tested on 3.12). No dependencies.
 
 ```bat
 python server.py --list
 python server.py --screenshot test.png
 ```
 
-Без аргументов процесс слушает MCP по stdio.
+With no arguments the process speaks MCP over stdio.
 
 ## Cursor
 
-В `mcp.json` клиента:
+In the client's `mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "screenshot": {
-      "command": "python",
-      "args": ["E:/EUREKA/mcp_screenshot/server.py"]
+      "command": "C:\\Program Files\\Python312\\python.exe",
+      "args": ["-u", "E:/EUREKA/mcp_screenshot/server.py"]
     }
   }
 }
 ```
 
-После добавления перезапусти MCP / Cursor.
+Reload MCP / Cursor after adding it.
 
-## Заметки
+## Notes
 
-- Скрин окна берёт пиксели с экрана (то, что видно). Если окно перекрыто — сначала `focus_window` или `bring_to_front: true`.
-- Свёрнутое окно снять нельзя, пока его не восстановить.
-- Только Windows.
+- Window capture uses on-screen pixels (what you see). If the window is covered, call `focus_window` first or pass `bring_to_front: true`.
+- A minimized window cannot be captured until it is restored.
+- Windows only.
