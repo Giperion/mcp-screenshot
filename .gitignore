@@ -11,3 +11,6 @@ TestResults/
 .idea/
 *.user
 *.suo
+
+# Claude Code subagent worktrees
+.claude/worktrees/
