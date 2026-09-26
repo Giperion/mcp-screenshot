@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "screenshot": {
-      "command": "C:\\Program Files\\Python312\\python.exe",
-      "args": ["-u", "E:/EUREKA/mcp_screenshot/server.py"]
-    }
-  }
-}
