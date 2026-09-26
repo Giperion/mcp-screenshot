@@ -13,7 +13,7 @@
 |---|---|
 | Зависимости | Можно требовать установленный **.NET 10 Runtime**. NativeAOT пока не делаем. |
 | Все мониторы разом | **Одна склеенная картинка** (приложение может быть растянуто на два монитора). |
-| Минимальная Windows | **Windows 10.** WGC используется, где доступен (1903+), иначе fallback. |
+| Минимальная Windows | **Windows 10 1809+** (минимум для WinRT-проекции Windows SDK; более старые сборки Win10 давно без поддержки). WGC используется, где доступен (1903+), иначе fallback. |
 | Формат картинки | **PNG** в ответе инструмента (раздел 8). JPEG/WebP не нужны. |
 
 ## 2. Цели
@@ -51,21 +51,23 @@
 | PNG | Свой энкодер на `System.IO.Compression.ZLibStream` с адаптивными PNG-фильтрами (Sub/Up/Average/Paeth по строкам) | Без System.Drawing. Фильтры заметно уменьшают размер файла по сравнению с «без фильтра». |
 | Масштабирование | Своё box/bilinear-уменьшение по BGRA-буферу | Читаемый текст после даунскейла. |
 | DPI | `app.manifest`: `PerMonitorV2` | Физические пиксели на всех мониторах с любым масштабом. |
-| Тесты | xUnit | |
-| Публикация | Framework-dependent single-file `win-x64` + `win-arm64` | Один exe, нужен установленный .NET 10 Runtime. NativeAOT можно добавить позже. |
+| Тесты | xUnit v3 на Microsoft Testing Platform | Протокольные тесты гоняют настоящую регистрацию сервера через in-memory потоки и клиент из MCP SDK. |
+| Публикация | Framework-dependent single-file `win-x64` + `win-arm64` | Один exe (~29 МБ, из них ~25 МБ — проекция Windows SDK), нужен установленный .NET 10 Runtime. Уменьшить можно позже через self-contained + trimming или NativeAOT. |
 
 ## 5. Структура репозитория
 
 ```
 mcp-screenshot/
 ├─ ScreenshotMcp.slnx
-├─ Directory.Build.props        общие настройки: nullable, warnings-as-errors, LangVersion
+├─ Directory.Build.props        общие настройки: TFM, nullable, warnings-as-errors, версия
+├─ Directory.Packages.props     версии NuGet-пакетов (central package management)
 ├─ global.json                  фиксирует версию SDK
 ├─ src/ScreenshotMcp/
 │  ├─ ScreenshotMcp.csproj
 │  ├─ app.manifest              PerMonitorV2 DPI
 │  ├─ NativeMethods.txt         список Win32 API для CsWin32
 │  ├─ Program.cs                хост MCP (stdio) + CLI-режимы
+│  ├─ Hosting/                  регистрация MCP-сервера и инструментов (общая для exe и тестов)
 │  ├─ Tools/                    MCP-инструменты (тонкий слой: аргументы → сервисы → результат)
 │  │   ├─ ScreenTools.cs        screenshot_screen, list_monitors
 │  │   └─ WindowTools.cs        screenshot_window, find_window, focus_window
@@ -180,7 +182,7 @@ mcp-screenshot/
 Каждый этап отдельным коммитом в ветку; после каждого проект собирается и тесты проходят.
 
 1. ~~**Удаление Python-версии.**~~ Сделано.
-2. **Каркас.** `.slnx`, `Directory.Build.props`, `global.json`, пустой MCP-сервер на SDK (stdio, логи только в stderr, чтобы не ломать протокол), `.gitignore`, CI-сборка на `windows-latest`.
+2. ~~**Каркас.**~~ Сделано: `.slnx`, `Directory.Build.props`, `Directory.Packages.props`, `global.json`, пустой MCP-сервер на SDK 2.2.0 (stdio, логи только в stderr), тест рукопожатия, `.gitignore`, CI на `windows-latest` (сборка, тесты, публикация exe в артефакты).
 3. **Spike по рискам.** Проверяем:
    - WinRT-проекцию WGC и получение кадра окна;
    - `SetFocus` через UI Automation;
@@ -217,7 +219,7 @@ mcp-screenshot/
   - свёрнутое окно;
   - Claude Code, Claude Desktop и Cursor как MCP-клиенты: модель видит картинку, лимиты клиентов не срабатывают.
 
-Ограничение: в облачном контейнере, где я работаю, Linux и нет .NET SDK. Код можно собрать (`EnableWindowsTargeting`), но захват реально проверяется только на Windows, то есть в CI на `windows-latest` и на вашей машине. Тесты, которым нужен рабочий стол, помечаются `[Trait("Category","Desktop")]` на случай, если в CI рабочего стола не окажется.
+Ограничение: облачный контейнер, где я работаю, — Linux. Там собирается решение (`EnableWindowsTargeting`) и проходят тесты без Win32, но захват реально проверяется только на Windows, то есть в CI на `windows-latest` и на вашей машине. Тесты, которым нужен рабочий стол, помечаются `[Trait("Category","Desktop")]` на случай, если в CI рабочего стола не окажется.
 
 ## 13. Риски
 

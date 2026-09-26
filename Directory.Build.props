@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <!-- The Windows SDK projection is needed for Windows.Graphics.Capture. -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Windows 10 1809 is the oldest version the Windows SDK projection supports. -->
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Version>0.1.0</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- Lets the solution build (but not capture anything) on Linux/macOS. -->
+    <EnableWindowsTargeting Condition="'$(OS)' != 'Windows_NT'">true</EnableWindowsTargeting>
+  </PropertyGroup>
+</Project>
