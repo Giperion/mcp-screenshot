@@ -6,6 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Independent PNG decoder and CRC-32 to check the encoder against. -->
+    <PackageReference Include="StbImageSharp" />
+    <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="xunit.v3" />
     <Using Include="Xunit" />
   </ItemGroup>
